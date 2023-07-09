@@ -29,11 +29,11 @@
        name: '*'
         state: latest
       become: yes
-   - name: Install OpenJDK 17
-     yum:
-       name: java-17-openjdk-devel
-       state: present
-     become: yes
+    - name: Install OpenJDK 17
+      yum:
+        name: java-17-openjdk-devel
+        state: present
+      become: yes
 #    - name: Update apt cache
 #      apt:
 #        update_cache: yes
