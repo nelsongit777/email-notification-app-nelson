@@ -37,7 +37,7 @@
         paths: /usr/lib/jvm/
         patterns: bin/java
       register: java_executable
-      changed_when: false
+
     - name: Set JAVA_HOME and PATH Variables
       set_fact:
         java_home: "{{ java_executable.stdout_lines[0] | dirname | dirname }}"
