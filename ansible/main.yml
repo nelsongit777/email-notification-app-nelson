@@ -16,6 +16,7 @@
     - name: Get current user
       debug:
         var: ansible_user
+
     - name: Ensure the app directory is present
       file:
         path: "{{ app_path }}"
@@ -23,42 +24,50 @@
         mode: "0755"
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
-   - name: Update yum cache
+
+    - name: Update yum cache
       yum:
-       name: '*'
+        name: '*'
         state: latest
       become: yes
-   - name: Install OpenJDK 17
+
+    - name: Install OpenJDK 17
       yum:
         name: java-17-openjdk-devel
         state: present
       become: yes
-#    - name: Update apt cache
-#      apt:
-#        update_cache: yes
-#    - name: Install OpenJDK 17
-#      apt:
-#        name: openjdk-17-jdk
-#        state: present
+
+    #- name: Update apt cache
+    #  apt:
+    #    update_cache: yes
+
+    #- name: Install OpenJDK 17
+    #  apt:
+    #    name: openjdk-17-jdk
+    #    state: present
+
     - name: Find Java 17 executable
       shell: "update-alternatives --query java | grep 'Value: ' | awk '{ print $2 }'"
       register: java_executable
+
     - name: Set JAVA_HOME
       set_fact:
         java_home: "{{ java_executable.stdout_lines[0] | dirname | dirname }}"
+
     - name: Set Java path
       set_fact:
         java_path: "{{ java_executable.stdout_lines[0] }}"
+
     - name: Display Java path and JAVA_HOME
       debug:
         msg:
           - "Java_Path: {{ java_path }}"
           - "JAVA_HOME: {{ java_home }}"
+
     - name: Backup existing JAR file with timestamp
-      command: mv -f "{{ app_path }}/{{ app_jar_name }}" "{{ app_path }}/sendemail-{{
-        ansible_date_time.date }}-{{ ansible_date_time.hour }}{{
-        ansible_date_time.minute }}{{ ansible_date_time.second }}.jar"
+      command: mv -f "{{ app_path }}/{{ app_jar_name }}" "{{ app_path }}/sendemail-{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}{{ ansible_date_time.minute }}{{ ansible_date_time.second }}.jar"
       ignore_errors: yes
+
     - name: Download JAR file from Nexus
       get_url:
         url: "{{ nexus_url }}"
@@ -67,19 +76,23 @@
         username: "{{ nexus_username }}"
         password: "{{ nexus_password }}"
       no_log: true
+
     - name: Change file permissions
       file:
         path: "{{ app_path }}/{{ app_jar_name }}"
         mode: "0755"
         owner: "{{ ansible_user }}"
-        group: "{{ ansible_user }}"    
+        group: "{{ ansible_user }}"
+
     - name: Create systemd service unit file
       template:
         src: sendemail.service.j2
         dest: /etc/systemd/system/sendemail.service
+
     - name: Reload systemd daemon
       systemd:
         daemon_reload: yes
+
     - name: Enable and start the service
       systemd:
         name: sendemail
