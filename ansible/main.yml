@@ -8,15 +8,14 @@
     nexus_username: "{{ lookup('env', 'NEXUS_USERNAME') }}"
     nexus_password: "{{ lookup('env', 'NEXUS_PASSWORD') }}"
     git_tag: "{{ lookup('env', 'GIT_TAG') }}"
-    nexus_url: http://20.237.82.26:8081/repository/maven-eficens/com/eficens/SendEmail/SendEmail/{{ git_tag }}/SendEmail-{{ git_tag }}.jar
+    nexus_url: http://20.237.82.26:8081/repository/maven-eficens/com/eficens/SendEmail/SendEmail/{{
+      git_tag }}/SendEmail-{{ git_tag }}.jar
   environment:
     ANSIBLE_HOST_KEY_CHECKING: "False"
-
   tasks:
     - name: Get current user
       debug:
         var: ansible_user
-
     - name: Ensure the app directory is present
       file:
         path: "{{ app_path }}"
@@ -24,50 +23,34 @@
         mode: "0755"
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
-
     - name: Update yum cache
       yum:
-        name: '*'
+        name: "*"
         state: latest
       become: yes
-
     - name: Install OpenJDK 17
       yum:
         name: java-17-amazon-corretto-devel
         state: present
       become: yes
-
-    #- name: Update apt cache
-    #  apt:
-    #    update_cache: yes
-
-    #- name: Install OpenJDK 17
-    #  apt:
-    #    name: openjdk-17-jdk
-    #    state: present
-
     - name: Find Java Executable
-        find:
-          paths: /usr/lib/jvm/
-          patterns: "bin/java"
-        register: java_executable
-        changed_when: false
-
+      find:
+        paths: /usr/lib/jvm/
+        patterns: bin/java
+      register: java_executable
+      changed_when: false
     - name: Set JAVA_HOME and PATH Variables
       set_fact:
         java_home: "{{ java_executable.files[0].path | dirname | dirname }}"
         java_path: "{{ java_executable.files[0].path }}"
-
     - name: Verify JAVA_HOME and PATH Variables
       debug:
-        var:
-          java_home
-          java_path
-
+        var: java_home java_path
     - name: Backup existing JAR file with timestamp
-      command: mv -f "{{ app_path }}/{{ app_jar_name }}" "{{ app_path }}/sendemail-{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}{{ ansible_date_time.minute }}{{ ansible_date_time.second }}.jar"
+      command: mv -f "{{ app_path }}/{{ app_jar_name }}" "{{ app_path }}/sendemail-{{
+        ansible_date_time.date }}-{{ ansible_date_time.hour }}{{
+        ansible_date_time.minute }}{{ ansible_date_time.second }}.jar"
       ignore_errors: yes
-
     - name: Download JAR file from Nexus
       get_url:
         url: "{{ nexus_url }}"
@@ -76,23 +59,19 @@
         username: "{{ nexus_username }}"
         password: "{{ nexus_password }}"
       no_log: true
-
     - name: Change file permissions
       file:
         path: "{{ app_path }}/{{ app_jar_name }}"
         mode: "0755"
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
-
     - name: Create systemd service unit file
       template:
         src: sendemail.service.j2
         dest: /etc/systemd/system/sendemail.service
-
     - name: Reload systemd daemon
       systemd:
         daemon_reload: yes
-
     - name: Enable and start the service
       systemd:
         name: sendemail
