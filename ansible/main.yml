@@ -8,8 +8,7 @@
     nexus_username: "{{ lookup('env', 'NEXUS_USERNAME') }}"
     nexus_password: "{{ lookup('env', 'NEXUS_PASSWORD') }}"
     git_tag: "{{ lookup('env', 'GIT_TAG') }}"
-    nexus_url: http://20.237.82.26:8081/repository/maven-eficens/com/eficens/SendEmail/SendEmail/{{
-      git_tag }}/SendEmail-{{ git_tag }}.jar
+    nexus_url: http://20.237.82.26:8081/repository/maven-eficens/com/eficens/SendEmail/SendEmail/{{ git_tag }}/SendEmail-{{ git_tag }}.jar
   environment:
     ANSIBLE_HOST_KEY_CHECKING: "False"
   tasks:
@@ -28,12 +27,12 @@
         name: "*"
         state: latest
       become: yes
-    - name: Install OpenJDK 17
+    - name: "Install OpenJDK 17"
       yum:
         name: java-17-amazon-corretto-devel
         state: present
       become: yes
-    - name: Find Java Executable
+    - name: "Find Java Executable"
       find:
         paths: /usr/lib/jvm/
         patterns: bin/java
@@ -41,15 +40,13 @@
       changed_when: false
     - name: Set JAVA_HOME and PATH Variables
       set_fact:
-        java_home: "{{ java_executable.files[0].path | dirname | dirname }}"
-        java_path: "{{ java_executable.files[0].path }}"
+        java_home: "{{ java_executable.stdout_lines[0] | dirname | dirname }}"
+        java_path: "{{ java_executable.stdout_lines[0] }}"
     - name: Verify JAVA_HOME and PATH Variables
       debug:
         var: java_home java_path
     - name: Backup existing JAR file with timestamp
-      command: mv -f "{{ app_path }}/{{ app_jar_name }}" "{{ app_path }}/sendemail-{{
-        ansible_date_time.date }}-{{ ansible_date_time.hour }}{{
-        ansible_date_time.minute }}{{ ansible_date_time.second }}.jar"
+      command: mv -f "{{ app_path }}/{{ app_jar_name }}" "{{ app_path }}/sendemail-{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}{{ ansible_date_time.minute }}{{ ansible_date_time.second }}.jar"
       ignore_errors: yes
     - name: Download JAR file from Nexus
       get_url:
@@ -58,7 +55,7 @@
         force: yes
         username: "{{ nexus_username }}"
         password: "{{ nexus_password }}"
-      no_log: true
+      no_log: "true"
     - name: Change file permissions
       file:
         path: "{{ app_path }}/{{ app_jar_name }}"
