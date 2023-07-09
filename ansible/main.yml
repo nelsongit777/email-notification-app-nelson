@@ -46,12 +46,12 @@
     #    name: openjdk-17-jdk
     #    state: present
 
-   - name: Find Java Executable
-      find:
-        paths: /usr/lib/jvm/
-        patterns: "bin/java"
-      register: java_executable
-      changed_when: false
+    - name: Find Java Executable
+        find:
+          paths: /usr/lib/jvm/
+          patterns: "bin/java"
+        register: java_executable
+        changed_when: false
 
     - name: Set JAVA_HOME and PATH Variables
       set_fact:
