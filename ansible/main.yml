@@ -23,13 +23,24 @@
         mode: "0755"
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
-    - name: Update apt cache
-      apt:
-        update_cache: yes
-    - name: Install OpenJDK 17
-      apt:
-        name: openjdk-17-jdk
-        state: present
+
+    - name: Update yum cache
+      yum:
+       name: '*'
+        state: latest
+      become: yes
+   - name: Install OpenJDK 17
+     yum:
+       name: java-17-openjdk-devel
+       state: present
+     become: yes
+#    - name: Update apt cache
+#      apt:
+#        update_cache: yes
+#    - name: Install OpenJDK 17
+#      apt:
+#        name: openjdk-17-jdk
+#        state: present
     - name: Find Java 17 executable
       shell: "update-alternatives --query java | grep 'Value: ' | awk '{ print $2 }'"
       register: java_executable
