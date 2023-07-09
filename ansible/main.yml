@@ -33,7 +33,7 @@
 
     - name: Install OpenJDK 17
       yum:
-        name: java-17-openjdk-devel
+        name: java-17-amazon-corretto-devel
         state: present
       become: yes
 
