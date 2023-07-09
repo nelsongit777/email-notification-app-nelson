@@ -46,23 +46,23 @@
     #    name: openjdk-17-jdk
     #    state: present
 
-    - name: Find Java 17 executable
-      shell: "update-alternatives --query java | grep 'Value: ' | awk '{ print $2 }'"
+   - name: Find Java Executable
+      find:
+        paths: /usr/lib/jvm/
+        patterns: "bin/java"
       register: java_executable
+      changed_when: false
 
-    - name: Set JAVA_HOME
+    - name: Set JAVA_HOME and PATH Variables
       set_fact:
-        java_home: "{{ java_executable.stdout_lines[0] | dirname | dirname }}"
+        java_home: "{{ java_executable.files[0].path | dirname | dirname }}"
+        java_path: "{{ java_executable.files[0].path }}"
 
-    - name: Set Java path
-      set_fact:
-        java_path: "{{ java_executable.stdout_lines[0] }}"
-
-    - name: Display Java path and JAVA_HOME
+    - name: Verify JAVA_HOME and PATH Variables
       debug:
-        msg:
-          - "Java_Path: {{ java_path }}"
-          - "JAVA_HOME: {{ java_home }}"
+        var:
+          java_home
+          java_path
 
     - name: Backup existing JAR file with timestamp
       command: mv -f "{{ app_path }}/{{ app_jar_name }}" "{{ app_path }}/sendemail-{{ ansible_date_time.date }}-{{ ansible_date_time.hour }}{{ ansible_date_time.minute }}{{ ansible_date_time.second }}.jar"
